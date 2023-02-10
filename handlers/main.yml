@@ -1,1 +1,18 @@
-#placeholder
+---
+- name: Restart nginx
+  ansible.builtin.service:
+    name: nginx
+    state: restarted
+    enabled: true
+
+- name: Update freshrss service
+  ansible.builtin.systemd:
+    state: restarted
+    enabled: true
+    daemon_reload: true
+    name: freshrss.service
+
+- name: Reload firewalld
+  systemd:
+    name: firewalld
+    state: reloaded

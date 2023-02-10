@@ -1,1 +1,17 @@
-# variable: True
+---
+# FRESHRSS_VOLUME_DIR: Location of the persistant volume used with the container
+FRESHRSS_VOLUME_DIR: '/mnt/freshrss'
+# FRESHRSS_VOLUME_MIN_SIZE: If FRESHRSS_VOLUME_DIR doesn't exist, we will make a new LV this size and mount it at FRESHRSS_VOLUME_DIR
+# FRESHRSS_VOLUME_MIN_SIZE: If the above partition is smaller than this value, it will grow it to this size
+FRESHRSS_VOLUME_MIN_SIZE: '2G'
+# FRESHRSS_LVM_NAME: If FRESHRSS_VOLUME_DIR doesn't exist, we will create this LV of FRESHRSS_VOLUME_MIN_SIZE size
+FRESHRSS_LVM_LV_NAME: 'lvm_freshrss'
+FRESHRSS_LVM_VG_NAME: 'rhel'
+# FRESHRSS_SERVICE_ACCOUNT: This local account will be created to run the container rootless
+FRESHRSS_SERVICE_ACCOUNT: 'srv_freshrss'
+FRESHRSS_URL: 'freshrss.example.com'
+FRESHRSS_ENV_TZ: 'America/New_York'
+FRESHRSS_SSL_CERT_PATH: '/etc/nginx/certs/freshrss.crt'
+FRESHRSS_SSL_KEY_PATH: '/etc/nginx/certs/freshrss.key'
+# FRESHRSS_SSL_CERT_PATH_COPY: define a path if you want to copy a cert and key over
+# FRESHRSS_SSL_KEY_PATH_COPY: define a path if you want to copy a cert and key over

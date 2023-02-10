@@ -1,4 +1,148 @@
 ---
+# Asserts:
+#   All env vars required exist
+
   - name: gather_facts
     gather_facts:
+    when:
+      - ansible_facts is undefined
+  
+  - name: Install Podman
+    ansible.builtin.package:
+      name: podman
+      state: present
+  
+  - name: Stat freshrss directory - Check if it exists
+    stat:
+      path: "{{ FRESHRSS_VOLUME_DIR }}"
+    register: freshrss_volume_dir_stat
 
+  - name: Create volume if it doesn't exist
+    block:
+      - name: Create freshrss LV
+        community.general.lvol:
+          vg: "{{ FRESHRSS_LVM_VG_NAME }}"
+          lv: "{{ FRESHRSS_LVM_LV_NAME }}"
+          size: "{{ FRESHRSS_VOLUME_MIN_SIZE }}"
+      - name: XFS on freshrss LV
+        community.general.filesystem:
+          fstype: xfs
+          dev: "/dev/mapper/{{ FRESHRSS_LVM_VG_NAME }}-{{ FRESHRSS_LVM_LV_NAME }}"
+      - name: Create freshrss volume folder
+        ansible.builtin.file:
+          path: "{{ FRESHRSS_VOLUME_DIR }}"
+          state: directory
+          mode: '711'
+      - name: Add freshrss LV to fstab & mount
+        ansible.posix.mount:
+          path: "{{ FRESHRSS_VOLUME_DIR }}"
+          src: "/dev/mapper/{{ FRESHRSS_LVM_VG_NAME }}-{{ FRESHRSS_LVM_LV_NAME }}"
+          fstype: xfs
+          opts: defaults
+          state: mounted
+          boot: true
+    when:
+      - not freshrss_volume_dir_stat.stat.exists
+
+  - name: Grow freshrss partition
+    community.general.lvol:
+      vg: "{{ FRESHRSS_LVM_VG_NAME }}"
+      lv: "{{ FRESHRSS_LVM_LV_NAME }}"
+      size: "{{ FRESHRSS_VOLUME_MIN_SIZE }}"
+      resizefs: true
+      shrink: false
+  
+  - name: Create freshrss service account
+    ansible.builtin.user:
+      name: "{{ FRESHRSS_SERVICE_ACCOUNT }}"
+      shell: '/sbin/nologin'
+
+  - name: Change owner of freshrss volume 
+    ansible.builtin.file:
+      path: "{{ FRESHRSS_VOLUME_DIR }}"
+      owner: "{{ FRESHRSS_SERVICE_ACCOUNT }}"
+      group: "{{ FRESHRSS_SERVICE_ACCOUNT }}"
+      mode: '711'
+      state: directory
+
+  - name: Podman pull latest linuxserver/freshrss
+    containers.podman.podman_image:
+      name: 'lscr.io/linuxserver/freshrss'
+      tag: 'latest'
+
+# https://serverfault.com/a/1122361
+  - name: "Get user ID for service account"
+    ansible.builtin.getent:
+      database: passwd
+
+  # Required for podman
+  - name: Sebool enable container_manage_cgroup
+    ansible.posix.seboolean:
+      name: container_manage_cgroup
+      persistent: true
+      state: true
+
+  # Required for nginx
+  - name: Sebool enable httpd_can_network_connect
+    ansible.posix.seboolean:
+      name: httpd_can_network_connect
+      persistent: true
+      state: true
+
+  - name: "Copy freshrss systemd service"
+    ansible.builtin.template:
+      src: "{{ role_path }}/templates/freshrss.service.j2"
+      dest: "/etc/systemd/system/freshrss.service"
+    notify: "Update freshrss service"
+
+  - name: Install nginx
+    ansible.builtin.package:
+      name: nginx
+      state: present
+
+  - name: Make my default ssl cert dir
+    ansible.builtin.file:
+      path: "/etc/nginx/certs"
+      state: 'directory'
+      owner: 'root'
+      group: 'root'
+      mode: '700'
+
+  - name: Copy SSL Cert
+    ansible.builtin.copy:
+      src: "{{ FRESHRSS_SSL_CERT_PATH_COPY }}"
+      dest: "{{ FRESHRSS_SSL_CERT_PATH }}"
+    notify: Restart nginx
+    when:
+      - FRESHRSS_SSL_CERT_PATH_COPY is defined
+
+  - name: Copy SSL Key
+    ansible.builtin.copy:
+      src: "{{ FRESHRSS_SSL_KEY_PATH_COPY }}"
+      dest: "{{ FRESHRSS_SSL_KEY_PATH }}"
+    notify: Restart nginx
+    when:
+      - FRESHRSS_SSL_KEY_PATH_COPY is defined
+
+  - name: Copy freshrss nginx template
+    ansible.builtin.template:
+      src: "{{ role_path }}/templates/nginx.conf.j2"
+      dest: /etc/nginx/conf.d/freshrss.conf
+    notify: Restart nginx
+  
+  - name: Add https through firewall
+    ansible.posix.firewalld:
+      service: https
+      permanent: true
+      state: enabled
+    notify: Reload firewalld
+
+  - name: Add http through firewall
+    ansible.posix.firewalld:
+      service: http
+      permanent: true
+      state: enabled
+    notify: Reload firewalld
+
+# TODO Check that FRESHRSS_URL returns a 200 or a 300
+# TODO BACKUPS
