@@ -1,6 +1,14 @@
 ---
+# TODO
 # Asserts:
 #   All env vars required exist
+# Seperate this into three parts
+#   main.yml ==> install.yml to setup the app
+#   create update.yml to update/manage the app
+#   create backup.yml to setup borg and/or xfsdump
+# create some test cases to
+#   validate this
+#   check that backups are working
 
   - name: gather_facts
     gather_facts:

@@ -4,7 +4,7 @@ FRESHRSS_VOLUME_DIR: '/mnt/freshrss'
 # FRESHRSS_VOLUME_MIN_SIZE: If FRESHRSS_VOLUME_DIR doesn't exist, we will make a new LV this size and mount it at FRESHRSS_VOLUME_DIR
 # FRESHRSS_VOLUME_MIN_SIZE: If the above partition is smaller than this value, it will grow it to this size
 FRESHRSS_VOLUME_MIN_SIZE: '2G'
-# FRESHRSS_LVM_NAME: If FRESHRSS_VOLUME_DIR doesn't exist, we will create this LV of FRESHRSS_VOLUME_MIN_SIZE size
+# FRESHRSS_LVM_NAME: If FRESHRSS_VOLUME_DIR doesn't exist, we will create this LV of FRESHRSS_VOLUME_MIN_SIZE size on VG FRESHRSS_LVM_VG_NAME mounted to FRESHRSS_VOLUME_DIR
 FRESHRSS_LVM_LV_NAME: 'lvm_freshrss'
 FRESHRSS_LVM_VG_NAME: 'rhel'
 # FRESHRSS_SERVICE_ACCOUNT: This local account will be created to run the container rootless
