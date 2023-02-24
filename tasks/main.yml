@@ -152,5 +152,31 @@
       state: enabled
     notify: Reload firewalld
 
+### App modifications
+## www/freshrss/data/config.php
+# base_url ==> 'https://freshrss.blah.com'
+# language ==> 'en'
+# default_user ==> '???'
+# auth_type ==> 'form'
+### will change this to http at some point https://freshrss.github.io/FreshRSS/en/admins/09_AccessControl.html
+# allow_anonymous ==> false
+# allow_anonymous_refresh ==> false
+# api_enabled ==> true
+# DB settings 
+# 'db' =>
+#   array (
+#     'type' => 'sqlite',
+#     'host' => false,
+#     'user' => false,
+#     'password' => false,
+#     'base' => false,
+#     'prefix' => false,
+#     'connection_uri_params' => '',
+#     'pdo_options' =>
+#     array (
+#     ),
+#   ),
+
+
 # TODO Check that FRESHRSS_URL returns a 200 or a 300
 # TODO BACKUPS
