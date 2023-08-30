@@ -1,9 +1,7 @@
+# Archived
+This repo has been re-made and re-architected here: https://github.com/ansible/ansible/blob/stable-2.9/examples/ansible.cfg
+
 # ansible-deploy-freshrss
-Purpose: Setup the freshrss docker container using rootless podman on its own partition
-
-Image: 'lscr.io/linuxserver/freshrss'
-tag: latest
-
 This role will:
 - Create a new parition for freshrss if it doesn't already exist
   - It can grow the partition if it does exist and needs more space (increase variable FRESHRSS_VOLUME_MIN_SIZE)
